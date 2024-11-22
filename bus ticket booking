@@ -1,0 +1,149 @@
+-- Database Creation
+CREATE DATABASE BusBookingSystem;
+USE BusBookingSystem;
+
+-- Table Creation
+
+-- Customers Table
+CREATE TABLE Customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(15),
+    password VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Buses Table
+CREATE TABLE Buses (
+    bus_id INT AUTO_INCREMENT PRIMARY KEY,
+    bus_number VARCHAR(10) UNIQUE,
+    capacity INT,
+    bus_type VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Routes Table
+CREATE TABLE Routes (
+    route_id INT AUTO_INCREMENT PRIMARY KEY,
+    source VARCHAR(100),
+    destination VARCHAR(100),
+    distance DECIMAL(5, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Schedules Table
+CREATE TABLE Schedules (
+    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
+    bus_id INT,
+    route_id INT,
+    departure_time DATETIME,
+    arrival_time DATETIME,
+    fare DECIMAL(10, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (bus_id) REFERENCES Buses(bus_id),
+    FOREIGN KEY (route_id) REFERENCES Routes(route_id)
+);
+
+-- Bookings Table
+CREATE TABLE Bookings (
+    booking_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    schedule_id INT,
+    seats INT,
+    total_fare DECIMAL(10, 2),
+    booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
+    FOREIGN KEY (schedule_id) REFERENCES Schedules(schedule_id)
+);
+
+-- Payments Table
+CREATE TABLE Payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT,
+    amount DECIMAL(10, 2),
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_method VARCHAR(50),
+    payment_status VARCHAR(50),
+    FOREIGN KEY (booking_id) REFERENCES Bookings(booking_id)
+);
+
+-- Sample Data Insertion
+
+-- Customers
+INSERT INTO Customers (first_name, last_name, email, phone, password)
+VALUES 
+('John', 'Doe', 'john.doe@example.com', '1234567890', 'password123'),
+('Jane', 'Smith', 'jane.smith@example.com', '0987654321', 'password456'),
+('Alice', 'Johnson', 'alice.johnson@example.com', '1112223333', 'password789'),
+('Bob', 'Brown', 'bob.brown@example.com', '4445556666', 'password012'),
+('Carol', 'Davis', 'carol.davis@example.com', '7778889999', 'password345');
+
+-- Buses
+INSERT INTO Buses (bus_number, capacity, bus_type)
+VALUES 
+('AB1234', 50, 'Sleeper'),
+('CD5678', 40, 'Seater'),
+('EF9012', 30, 'Semi-Sleeper'),
+('GH3456', 45, 'Sleeper'),
+('IJ7890', 35, 'Seater');
+
+-- Routes
+INSERT INTO Routes (source, destination, distance)
+VALUES 
+('CityA', 'CityB', 300.00),
+('CityC', 'CityD', 450.00),
+('CityE', 'CityF', 200.00),
+('CityG', 'CityH', 350.00),
+('CityI', 'CityJ', 500.00);
+
+-- Schedules
+INSERT INTO Schedules (bus_id, route_id, departure_time, arrival_time, fare)
+VALUES 
+(1, 1, '2024-07-01 08:00:00', '2024-07-01 14:00:00', 50.00),
+(2, 2, '2024-07-01 09:00:00', '2024-07-01 18:00:00', 75.00),
+(3, 3, '2024-07-02 07:30:00', '2024-07-02 11:30:00', 30.00),
+(4, 4, '2024-07-03 06:00:00', '2024-07-03 13:00:00', 60.00),
+(5, 5, '2024-07-04 10:00:00', '2024-07-04 18:00:00', 90.00);
+
+-- Bookings
+INSERT INTO Bookings (customer_id, schedule_id, seats, total_fare, status)
+VALUES 
+(1, 1, 2, 100.00, 'Confirmed'),
+(2, 2, 1, 75.00, 'Confirmed'),
+(3, 3, 3, 90.00, 'Pending'),
+(4, 4, 4, 240.00, 'Confirmed'),
+(5, 5, 2, 180.00, 'Cancelled');
+
+-- Payments
+INSERT INTO Payments (booking_id, amount, payment_method, payment_status)
+VALUES 
+(1, 100.00, 'Credit Card', 'Paid'),
+(2, 75.00, 'Debit Card', 'Paid'),
+(3, 90.00, 'PayPal', 'Pending'),
+(4, 240.00, 'Credit Card', 'Paid'),
+(5, 180.00, 'Debit Card', 'Refunded');
+
+-- Queries
+
+-- Find Available Buses for a Route
+SELECT Buses.bus_number, Buses.bus_type, Schedules.departure_time, Schedules.arrival_time, Schedules.fare
+FROM Schedules
+JOIN Buses ON Schedules.bus_id = Buses.bus_id
+JOIN Routes ON Schedules.route_id = Routes.route_id
+WHERE Routes.source = 'CityA' AND Routes.destination = 'CityB';
+
+-- Book a Seat
+INSERT INTO Bookings (customer_id, schedule_id, seats, total_fare, status)
+VALUES (1, 1, 2, 100.00, 'Confirmed');
+
+-- Payment
+INSERT INTO Payments (booking_id, amount, payment_method, payment_status)
+VALUES (1, 100.00, 'Credit Card', 'Paid');
+
+-- Update Booking Status
+UPDATE Bookings
+SET status = 'Cancelled'
+WHERE booking_id = 1;
